@@ -84,6 +84,55 @@ class TestStraight:
         winner = compare_hands(hand1, hand2)
         assert expected_winner == winner
 
+
+class TestFourOfAKind:
+    @pytest.mark.parametrize(
+        "hand1, hand2, expected_winner",
+        [
+            (["3 heart", "3 diamond", "3 spade", "3 club", "8 heart"], 
+             ["2 diamond", "2 club", "2 spade", "2 heart", "J diamond"], 
+             "hand1")
+        ],
+        ids=[
+            "Higher four of a kind wins"
+        ]
+    )
+    def test_full_house(self, hand1, hand2, expected_winner):
+        winner = compare_hands(hand1, hand2)
+        assert expected_winner == winner
+
+class TestFullHouse:
+    @pytest.mark.parametrize(
+        "hand1, hand2, expected_winner",
+        [
+            (["3 heart", "3 diamond", "3 spade", "8 club", "8 heart"], 
+             ["2 diamond", "2 club", "2 spade", "J heart", "J diamond"], 
+             "hand1")
+        ],
+        ids=[
+            "Higher three of a kind wins"
+        ]
+    )
+    def test_full_house(self, hand1, hand2, expected_winner):
+        winner = compare_hands(hand1, hand2)
+        assert expected_winner == winner
+
+class TestThreeOfAKind:
+    @pytest.mark.parametrize(
+        "hand1, hand2, expected_winner",
+        [
+            (["3 heart", "3 diamond", "3 spade", "8 club", "10 heart"],
+             ["2 diamond", "2 club", "2 spade", "J heart", "K diamond"],
+             "hand1"),
+        ],
+        ids=[
+            "Higher three of a kind wins"
+        ]
+    )
+    def test_three_of_a_kind(self, hand1, hand2, expected_winner):
+        winner = compare_hands(hand1, hand2)
+        assert expected_winner == winner
+
 class TestDoublePairs:
     @pytest.mark.parametrize(
         "hand1, hand2, expected_winner",
@@ -92,12 +141,12 @@ class TestDoublePairs:
              ["8 spade", "8 heart", "7 spade", "7 diamond", "3 club"],
              "hand1"),
 
-            (["10 spade", "10 club", "9 club", "9 diamond", "A heart"],
+            (["10 spade", "10 club", "6 club", "6 diamond", "A heart"],
              ["9 spade", "9 heart", "7 spade", "7 diamond", "3 club"],
              "hand1"),
 
-            (["10 spade", "10 club", "Q club", "Q diamond", "A club"],
-             ["J spade", "J heart", "9 spade", "2 diamond", "3 club"],
+            (["10 spade", "10 club", "K club", "K diamond", "3 club"],
+             ["J spade", "J heart", "Q spade", "Q diamond", "A club"],
              "hand1"),
             
             (["J spade", "J heart", "9 spade", "2 diamond", "3 club"],
@@ -134,11 +183,11 @@ class TestSinglePair:
              "hand2"),
             
             (["J spade", "J heart", "9 spade", "2 diamond", "3 club"],
-             ["J spade", "J club", "9 club", "5 diamond", "A club"],
+             ["J diamond", "J club", "9 club", "5 diamond", "A club"],
              "hand2"),
             
             (["10 spade", "10 club", "K club", "Q diamond", "A club"],
-             ["10 diamond", "10 heart", "K spade", "Q diamond", "A diamond"],
+             ["10 diamond", "10 heart", "K spade", "Q spade", "A diamond"],
              "tie"),
         ],
         ids=[

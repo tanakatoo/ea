@@ -9,32 +9,31 @@ class Hand:
         Args:
             hand (list): list of 5 cards in the form of "<Card number> <suit>" e.g. "J spade"
         """
+        # Ranking in order from strongest to weakest
         self.ranking = {
                     'straight_flush': False,
+                    'four_of_a_kind': False,
                     'flush': False,
                     'straight': False,
+                    'full_house': False,
+                    'three_of_a_kind': False,
                     'double_pair': False,
-                    'single_pair': False,
-                    'card': False
+                    'single_pair': False
                     }
 
         self.hand_dict = self.parse_input(hand) # The parsed input
         self.sorted_high_to_low = self.sort_high_to_low() # Sort the card numbers from high to low
         
-        # Find the highest rank
         self.ranking['double_pair'] = self.check_is_double_pair()
-        if not self.ranking['double_pair']:
-            self.ranking['single_pair'] = self.check_is_single_pair()
-            
-            if not self.ranking['single_pair']: 
-                self.ranking['flush'] = self.check_is_flush()
-                self.ranking['straight'] = self.check_is_straight()
+        self.ranking['full_house'] = self.check_is_full_house()
+        self.ranking['three_of_a_kind'] = self.check_is_three_of_a_kind()
+        self.ranking['four_of_a_kind'] = self.check_is_four_of_a_kind()
+        self.ranking['single_pair'] = self.check_is_single_pair()
+        self.ranking['flush'] = self.check_is_flush()
+        self.ranking['straight'] = self.check_is_straight()
 
-                if self.ranking['straight'] and self.ranking['flush']:
-                    self.ranking['straight_flush'] = True
-                    self.ranking['straight'] = False
-                    self.ranking['flush'] = False
-
+        if self.ranking['straight'] and self.ranking['flush']:
+            self.ranking['straight_flush'] = True
                         
     def __repr__(self):
         return(f"""
@@ -44,29 +43,60 @@ class Hand:
 
         
     def parse_input(self, hand):
+        """
+        Parses input into a dict. 
+        Changes all input into an int and JQKA becomes 11, 12, 13, 14
+
+        Args:
+            hand (list): poker hand input from user
+
+        Returns:
+            dict: 
+                {
+                    <num>: [<suit>,<suit>,...]
+                }
+        """
         JQKA = {'J': 11 ,'Q': 12 ,'K': 13, 'A': 14}
         
         hand_dict = {}
-        
         for card in hand:
             cardArr = card.split()
-            #check if card if j,q,or k
+            
             if cardArr[0] in JQKA.keys():
                 cardArr[0] = JQKA[cardArr[0]]
+                
             if int(cardArr[0]) in hand_dict:
                 hand_dict[int(cardArr[0])].append(cardArr[1])
+                
             else:
                 hand_dict[int(cardArr[0])]= [cardArr[1]]
                 
         return hand_dict
 
+    def sort_high_to_low(self):
+        """
+        Sorts the hand into a list from high to low numbers
+
+        Returns:
+           list: integers representing the hand from high to low
+        """
+        nums = [k for k in self.hand_dict.keys()]
+        nums.sort(reverse=True)
+        return nums
+
     def check_is_straight(self):
+        """
+        Checks to see if hand is a straight
+
+        Returns:
+            Boolean: whether or not the hand is a straight
+        """
         straight = True
-        print('checking straight', self.sorted_high_to_low)
         
         for i in range(0,len(self.sorted_high_to_low)-1):
             if not(self.sorted_high_to_low[i] - self.sorted_high_to_low[i+1] == 1):
                 straight = False
+                
         if straight == False and 14 in self.sorted_high_to_low:
             # check that it is not 12345
             self.sorted_high_to_low = self.sorted_high_to_low[1:]
@@ -76,121 +106,138 @@ class Hand:
                     straight = False
         
         return straight
-
         
     def check_is_flush(self):
-        # Not flush if dict only has < 5 keys; each key is a unique card number
+        """
+        Checks to see if hand is a flush. 
+
+        Returns:
+            Boolean: whether or not the hand is a flush
+        """
         if len(self.hand_dict.keys()) < 5:
             return False
         values = list(self.hand_dict.values())
         
         first_suit = values[0][0]
         return (all(suit[0] == first_suit for suit in values))
+    
+    def check_is_four_of_a_kind(self):
+        """
+        Checks to see if hand is a 4 of a kind. 
+
+        Returns:
+            Boolean: whether or not the hand is a 4 of a kind
+        """
+        return len(self.hand_dict) == 2 and any(len(arr) == 4 for arr in self.hand_dict.values())
+    
+    def check_is_full_house(self):
+        """
+        Checks to see if hand is a full house
+
+        Returns:
+            Boolean: whether or not the hand is a full house
+        """
+        return len(self.sorted_high_to_low) == 2 and any(len(arr) == 3 for arr in self.hand_dict.values())
+    
+    def check_is_three_of_a_kind(self):
+        """
+        Checks to see if hand has a 3 of a kind
+
+        Returns:
+            Boolean: whether or not the hand has a 3 of a kind
+        """
+        return len(self.hand_dict) == 3 and any(len(arr) == 3 for arr in self.hand_dict.values())
 
     def check_is_double_pair(self):
-        #check if there are only 3 keys
-        return len(self.sorted_high_to_low) == 3
+        """
+        Checks to see if hand has 2 pairs
+
+        Returns:
+            Boolean: whether or not the hand has 2 pairs
+        """
+        return len(self.sorted_high_to_low) == 3 and not any(len(arr) == 3 for arr in self.hand_dict.values())
 
     def check_is_single_pair(self):
-        #check if there are only 4 keys
+        """
+        Checks to see if hand has 1 pair
+
+        Returns:
+            Boolean: whether or not the hand has 1 pair
+        """
         return len(self.sorted_high_to_low) == 4
-    
-    def sort_high_to_low(self):
-        nums = [k for k in self.hand_dict.keys()]
-        nums.sort(reverse=True)
-        
-        return nums
+
+
+
+
 
 def compare_hands(hand1, hand2):
-    """Compare 2 hands
+    """
+    Compare 2 poker hands
     Ignoring 5 of a kind (no wild cards), so the highest hand is a straight flush
     Suits don't matter except in a flush or straight flush
     
-    hand1, hand2 follows the format: ["J spade", "J heart", "9 spade", "2 diamond", "3 club"]
+    Assume that hand1 and hand2 have been checked and formated to this format: 
+    ["J spade", "J heart", "9 spade", "2 diamond", "3 club"]
     
-    #break up into dict
+    Args: 
+    hand1: One hand of poker
+    hand2: The other hand of poker to compare
     
-    {
-        J: [heart, spade],
-        9: [spade],
-        2: [diamond],
-        3: [club]
-    }
-    also at the same time when parsing see if it is a flush
     """
-
     hand1_obj = Hand(hand1)
     hand2_obj = Hand(hand2)
-    print(hand1_obj, hand2_obj)
-  
     tie = False
-    #compare both hands
-    if hand1_obj.ranking != hand2_obj.ranking:
-        print('in here')
-        #compare 2 lists and see which one has true first
-        hand1_ranks=[a for a in hand1_obj.ranking.values()]
-        hand2_ranks=[b for b in hand2_obj.ranking.values()]
-        print(hand1_ranks, hand2_ranks)
+    
+    def determine_winner_3_4_of_a_kind(len_of_repeat):
+        hand1_x_of_a_kind_num = [key for key, value in hand1_obj.hand_dict.items() if len(value) == len_of_repeat]
+        hand2_x_of_a_kind_num = [key for key, value in hand2_obj.hand_dict.items() if len(value) == len_of_repeat]
         
-        if True in hand1_ranks and True in hand2_ranks:
-            if hand1_ranks.index(True) > hand2_ranks.index(True):
-                return "hand2"
-            elif hand1_ranks.index(True) < hand2_ranks.index(True):
-                return "hand1"
-            else:
-                tie = True
-        else:
-            if True in hand1_ranks:
-                return "hand1"
-            elif True in hand2_ranks:
-                return "hand2"
-            else:
-                tie = True
+        if hand1_x_of_a_kind_num[0] > hand2_x_of_a_kind_num[0]:
+            return "hand1"
+        elif hand1_x_of_a_kind_num[0] < hand2_x_of_a_kind_num[0]:
+            return "hand2"
+   
+    def determine_winner_double_pair_single_card(len_of_repeat):
+        hand1_double_pair_nums = [key for key, value in hand1_obj.hand_dict.items() if len(value) == len_of_repeat]
+        hand2_double_pair_nums = [key for key, value in hand2_obj.hand_dict.items() if len(value) == len_of_repeat]
+        hand1_double_pair_nums.sort(reverse=True)
+        hand2_double_pair_nums.sort(reverse=True)
         
-
-    if hand1_obj.ranking == hand2_obj.ranking or tie:
-        print('both are the same')
-        for hand1_num, hand2_num in zip(hand1_obj.sorted_high_to_low, hand2_obj.sorted_high_to_low):
-            print(hand1_num, hand2_num)
+        for hand1_num, hand2_num in zip(hand1_double_pair_nums, hand2_double_pair_nums):
             if hand1_num > hand2_num:
                 return 'hand1'
             elif hand2_num > hand1_num:
                 return 'hand2'
-    
-        return "tie"
-  
-        
-        
-    
-    
-    
-#flush
-# hand1=["10 club", "J club", "Q club", "K club", "3 club"]
-#straight flush
-#hand1=["A club", "K club", "Q club", "10 club", "J club"]
-# #straight
-# hand1=["10 spade", "J club", "Q club", "K club", "A club"]
-# #straight other way
-# hand1=["2 spade", "4 club", "3 club", "A club", "5 club"]
-# #double pair
-#hand1=["10 spade", "10 club", "Q club", "Q diamond", "A club"]
-# #single pair
-#hand1=["10 spade", "10 club", "K club", "6 diamond", "A heart"]
-# #high card
-# hand1=["4 spade", "J heart", "9 spade", "2 diamond", "3 club"]
-# hand2=["4 spade", "J heart", "9 spade", "2 diamond", "3 club"]
 
+    if hand1_obj.ranking != hand2_obj.ranking:
+        # Compare the 2 rankings. Strong hand will have True 
+        hand1_ranks=list(hand1_obj.ranking.values())
+        hand2_ranks=list(hand2_obj.ranking.values())
+        
+        for val1, val2 in zip(hand1_ranks, hand2_ranks):
+            if val1 and not val2:
+                return "hand1"
+            elif val2 and not val1:
+                return "hand2"
+            else:
+                tie = True  
 
-hand1=["10 club", "J club", "Q club", "K club", "A club"]
-hand2=["K club", "J club", "9 club", "2 club", "3 club"]
-winner = compare_hands(hand1, hand2)
-print ('winner is....', winner, '!')
-"""
-errors: check that each hand is 5 elements long
-elements are from 2-10, JQKA (A can be high or low)
-- less than 5 keys in dict (repeated num)
-- need to add A as 1 code
-- 
-"""
+    if hand1_obj.ranking == hand2_obj.ranking or tie:
+        if hand1_obj.ranking['four_of_a_kind']:
+            return determine_winner_3_4_of_a_kind(4)
+            
+        if hand1_obj.ranking['three_of_a_kind'] or hand1_obj.ranking['full_house']:
+            return determine_winner_3_4_of_a_kind(3)
+            
+        if hand1_obj.ranking['double_pair']:
+            result = determine_winner_double_pair_single_card(2)
+            if result in ['hand1', 'hand2']:
+                return result
+                
+        result = determine_winner_double_pair_single_card(1)
+        if result in ['hand1', 'hand2']:
+            return result
+        else:
+            return "tie"
 
     
