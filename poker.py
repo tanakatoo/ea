@@ -13,9 +13,9 @@ class Hand:
         self.ranking = {
                     'straight_flush': False,
                     'four_of_a_kind': False,
+                    'full_house': False,
                     'flush': False,
                     'straight': False,
-                    'full_house': False,
                     'three_of_a_kind': False,
                     'double_pair': False,
                     'single_pair': False
@@ -91,6 +91,9 @@ class Hand:
         Returns:
             Boolean: whether or not the hand is a straight
         """
+        if len(self.sorted_high_to_low) < 5:
+            return False 
+    
         straight = True
         
         for i in range(0,len(self.sorted_high_to_low)-1):
@@ -101,6 +104,7 @@ class Hand:
             # check that it is not 12345
             self.sorted_high_to_low = self.sorted_high_to_low[1:]
             self.sorted_high_to_low.append(1)
+            
             for i in range(0,len(self.sorted_high_to_low)-1):
                 if not(self.sorted_high_to_low[i] - self.sorted_high_to_low[i+1] == 1):
                     straight = False
@@ -166,10 +170,6 @@ class Hand:
         """
         return len(self.sorted_high_to_low) == 4
 
-
-
-
-
 def compare_hands(hand1, hand2):
     """
     Compare 2 poker hands
@@ -210,10 +210,10 @@ def compare_hands(hand1, hand2):
                 return 'hand2'
 
     if hand1_obj.ranking != hand2_obj.ranking:
-        # Compare the 2 rankings. Strong hand will have True 
+        # Compare the 2 rankings. Strong hand will have True first
         hand1_ranks=list(hand1_obj.ranking.values())
         hand2_ranks=list(hand2_obj.ranking.values())
-        
+
         for val1, val2 in zip(hand1_ranks, hand2_ranks):
             if val1 and not val2:
                 return "hand1"

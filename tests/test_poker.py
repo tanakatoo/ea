@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pytest
 from poker import Hand, compare_hands
-
+   
 class TestStraightFlush:
     @pytest.mark.parametrize(
         "hand1, hand2, expected_winner",
@@ -110,7 +110,7 @@ class TestFullHouse:
              "hand1")
         ],
         ids=[
-            "Higher three of a kind wins"
+            "Higher full house wins"
         ]
     )
     def test_full_house(self, hand1, hand2, expected_winner):
@@ -144,10 +144,6 @@ class TestDoublePairs:
             (["10 spade", "10 club", "6 club", "6 diamond", "A heart"],
              ["9 spade", "9 heart", "7 spade", "7 diamond", "3 club"],
              "hand1"),
-
-            (["10 spade", "10 club", "K club", "K diamond", "3 club"],
-             ["J spade", "J heart", "Q spade", "Q diamond", "A club"],
-             "hand1"),
             
             (["J spade", "J heart", "9 spade", "2 diamond", "3 club"],
              ["10 spade", "10 club", "Q club", "Q diamond", "A club"],
@@ -160,7 +156,6 @@ class TestDoublePairs:
         ids=[
             "2 higher pairs beat 2 lower pairs",
             "1 higher pair beat 2 lower pairs",
-            "2 pairs beat 1 pair",
             "Higher kicker beats lower kicker",
             "Tie"
         ]
@@ -177,10 +172,6 @@ class TestSinglePair:
             (["10 spade", "10 club", "8 club", "9 diamond", "A heart"],
              ["8 spade", "8 heart", "6 spade", "7 diamond", "3 club"],
              "hand1"),
-
-            (["K spade", "10 club", "A heart", "Q diamond", "2 club"],
-             ["J spade", "J heart", "9 spade", "2 diamond", "3 club"],
-             "hand2"),
             
             (["J spade", "J heart", "9 spade", "2 diamond", "3 club"],
              ["J diamond", "J club", "9 club", "5 diamond", "A club"],
@@ -192,7 +183,6 @@ class TestSinglePair:
         ],
         ids=[
             "Higher pair beats lower pair",
-            "Single pair beats no pair",
             "Higher kicker beats lower kicker",
             "Tie"
         ]
@@ -219,5 +209,101 @@ class TestHighCard:
         ]
     )
     def test_high_card(self, hand1, hand2, expected_winner):
+        winner = compare_hands(hand1, hand2)
+        assert expected_winner == winner
+        
+
+class TestDifferentRankings:
+    FOUR_OF_A_KIND = ["3 heart", "3 diamond", "3 spade", "3 club", "8 heart"]
+    THREE_OF_A_KIND =  ["2 diamond", "2 club", "2 spade", "J heart", "K diamond"]
+    FULL_HOUSE = ["3 heart", "3 diamond", "3 spade", "8 club", "8 heart"]
+    DOUBLE_PAIR = ["10 spade", "10 club", "Q club", "Q diamond", "2 club"]
+    SINGLE_PAIR = ["10 spade", "10 club", "2 club", "3 diamond", "4 club"]
+    HIGH_CARD = ["2 diamond", "4 spade", "6 heart", "8 club", "A diamond"]
+    FLUSH = ["2 heart", "3 heart", "4 heart", "10 heart", "6 heart"]
+    STRAIGHT_FLUSH = ["2 heart", "3 heart", "4 heart", "5 heart", "6 heart"]
+    STRAIGHT = ["2 heart", "3 diamond", "4 heart", "5 heart", "6 heart"]
+
+    @pytest.mark.parametrize(
+        "hand1, hand2, expected_winner",
+        [
+            (SINGLE_PAIR, HIGH_CARD, "hand1"),
+            (DOUBLE_PAIR, SINGLE_PAIR, "hand1"),
+            (DOUBLE_PAIR, HIGH_CARD, "hand1"),
+            (THREE_OF_A_KIND, FULL_HOUSE, "hand2"),
+            (DOUBLE_PAIR, FULL_HOUSE, "hand2"),
+            (SINGLE_PAIR, FULL_HOUSE, "hand2"),
+            (HIGH_CARD, FULL_HOUSE, "hand2"),
+            (FLUSH, FULL_HOUSE, "hand2"),
+            (STRAIGHT, FULL_HOUSE, "hand2"),
+            (THREE_OF_A_KIND, DOUBLE_PAIR, "hand1"),
+            (THREE_OF_A_KIND, SINGLE_PAIR, "hand1"),
+            (THREE_OF_A_KIND, HIGH_CARD, "hand1"),
+            (FOUR_OF_A_KIND, THREE_OF_A_KIND, "hand1"),
+            (FOUR_OF_A_KIND, FULL_HOUSE, "hand1"),
+            (FOUR_OF_A_KIND, DOUBLE_PAIR, "hand1"),
+            (FOUR_OF_A_KIND, SINGLE_PAIR, "hand1"),
+            (FOUR_OF_A_KIND, HIGH_CARD, "hand1"),
+            (FOUR_OF_A_KIND, FLUSH, "hand1"),
+            (FOUR_OF_A_KIND, STRAIGHT, "hand1"),
+            (STRAIGHT, FLUSH, "hand2"),
+            (THREE_OF_A_KIND, FLUSH, "hand2"),
+            (DOUBLE_PAIR, FLUSH, "hand2"),
+            (SINGLE_PAIR, FLUSH, "hand2"),
+            (HIGH_CARD, FLUSH, "hand2"),
+            (STRAIGHT, THREE_OF_A_KIND, "hand1"),
+            (STRAIGHT, DOUBLE_PAIR, "hand1"),
+            (STRAIGHT, SINGLE_PAIR, "hand1"),
+            (STRAIGHT, HIGH_CARD, "hand1"),
+            (STRAIGHT_FLUSH, FOUR_OF_A_KIND, "hand1"),
+            (STRAIGHT_FLUSH, THREE_OF_A_KIND, "hand1"),
+            (STRAIGHT_FLUSH, FULL_HOUSE, "hand1"),
+            (STRAIGHT_FLUSH, DOUBLE_PAIR, "hand1"),
+            (STRAIGHT_FLUSH, SINGLE_PAIR, "hand1"),
+            (STRAIGHT_FLUSH, HIGH_CARD, "hand1"),
+            (STRAIGHT_FLUSH, FLUSH, "hand1"),
+            (STRAIGHT_FLUSH, STRAIGHT, "hand1"),
+        ],
+        ids=[
+            "Single pair beats high card",
+            "Double pair beats single pair",
+            "Double pair beats high card",
+            "Full house beats 3 of a kind",
+            "Full house beats double pair",
+            "Full house beats single pair",
+            "Full house beats high card",
+            "Full house beats flush",
+            "Full house beats straight",
+            "Three of a kind beats double pair",
+            "Three of a kind beats single pair",
+            "Three of a kind beats high card",
+            "Four of a kind beats 3 of a kind",
+            "Four of a kind beats full house",
+            "Four of a kind beats double pair",
+            "Four of a kind beats single pair",
+            "Four of a kind beats high card",
+            "Four of a kind beats flush",
+            "Four of a kind beats straight",
+            "Flush beats straight",
+            "Flush beats 3 of a kind",
+            "Flush beats double pair",
+            "Flush beats single pair",
+            "Flush beats high card",
+            "Straight beats 3 of a kind",
+            "Straight beats double pair",
+            "Straight beats single pair",
+            "Straight beats high card",
+            "Straight flush beats 4 of a kind",
+            "Straight flush beats 3 of a kind",
+            "Straight flush beats full house",
+            "Straight flush beats double pair",
+            "Straight flush beats single pair",
+            "Straight flush beats high card",
+            "Straight flush beats flush",
+            "Straight flush beats straight",
+        ]
+    )
+    
+    def test_different_rankings(self, hand1, hand2, expected_winner):
         winner = compare_hands(hand1, hand2)
         assert expected_winner == winner
